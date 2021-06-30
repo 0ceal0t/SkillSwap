@@ -167,7 +167,6 @@ namespace SkillSwap {
                         if (ImGui.Button("Select" + Id)) {
                             Selected = SearchSelect;
                             SelectedText = Selected.Name;
-                            PluginLog.Log($"END: {Selected.EndKey}\nSTART: {Selected.StartKey}\nHIT: {Selected.HitKey}");
                         }
                     }
 

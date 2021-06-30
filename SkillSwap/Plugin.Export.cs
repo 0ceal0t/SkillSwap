@@ -23,10 +23,7 @@ namespace SkillSwap {
         }
 
         public bool FileExists(string path) {
-            var a = PluginInterface.Data.FileExists(path);
-            string b = a ? "[OK]" : "[NO]";
-            PluginLog.Log($"{path} {b}");
-            return a;
+            return PluginInterface.Data.FileExists(path);
         }
 
         public Dictionary<string, string> FileMapping() {
@@ -35,6 +32,9 @@ namespace SkillSwap {
                 MapSingle(item.Current.StartKey, item.New.StartKey, ret);
                 MapSingle(item.Current.EndKey, item.New.EndKey, ret);
                 MapSingle(item.Current.HitKey, item.New.HitKey, ret);
+            }
+            foreach (var item in ret) {
+                PluginLog.Log($"Replacing: {item.Key} With: {item.Value}");
             }
             return ret;
         }
