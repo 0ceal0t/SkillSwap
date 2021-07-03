@@ -38,7 +38,7 @@ namespace SkillSwap {
         private void Init() {
             var sheet = PluginInterface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !string.IsNullOrEmpty(x.Name));
             foreach(var item in sheet) {
-                string startKey = item.AnimationStart?.Value?.Name.ToString();
+                string startKey = item.AnimationStart?.Value?.Name?.Value?.Key.ToString();
                 string endKey = item.AnimationEnd?.Value?.Key.ToString();
                 string hitKey = item.ActionTimelineHit?.Value?.Key.ToString();
 
