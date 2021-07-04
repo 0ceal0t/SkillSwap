@@ -11,7 +11,7 @@ namespace SkillSwap {
     public partial class Plugin {
         public void ExportPenumbra() {
             var mapping = FileMapping();
-            Penumbra(ModName, ModAuthor, ModVersion, Config.SaveLocation, mapping);
+            Confirm.SetData(ModName, ModAuthor, ModVersion, Config.SaveLocation, mapping, (name, author, version, save, mapping) => Penumbra(name, author, version, save, mapping));
         }
 
         public struct PenumbraMod {
@@ -23,7 +23,7 @@ namespace SkillSwap {
             public Dictionary<string, string> FileSwaps;
         }
 
-        public void Penumbra(string name, string author, string version, string saveLocation, Dictionary<string, string> mapping) {
+        public void Penumbra(string name, string author, string version, string saveLocation, Dictionary<string, SwapMapping> mapping) {
             try {
                 PenumbraMod mod = new PenumbraMod();
                 mod.Name = name;
@@ -31,13 +31,20 @@ namespace SkillSwap {
                 mod.Description = "Exported from SkillSwap";
                 mod.Version = version;
                 mod.Website = null;
-                mod.FileSwaps = mapping;
+                mod.FileSwaps = new Dictionary<string, string>();
 
                 string modFolder = Path.Combine(saveLocation, name);
                 Directory.CreateDirectory(modFolder);
                 string modConfig = Path.Combine(modFolder, "meta.json");
                 string configString = JsonConvert.SerializeObject(mod);
                 File.WriteAllText(modConfig, configString);
+
+                foreach (var entry in RemoveConflicts(mapping)) {
+                    string modFile = Path.Combine(modFolder, entry.Key);
+                    string modFileFolder = Path.GetDirectoryName(modFile);
+                    Directory.CreateDirectory(modFileFolder);
+                    File.WriteAllBytes(modFile, entry.Value);
+                }
 
                 PluginLog.Log("Exported To: " + saveLocation);
             }

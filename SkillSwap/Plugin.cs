@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.Command;
 using Dalamud.Plugin;
+using SkillSwap.UI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -13,11 +14,12 @@ namespace SkillSwap {
 
         private DalamudPluginInterface PluginInterface;
         private Configuration Config;
-
-        public static List<SwapItem> AllActions = new();
-        
         public string AssemblyLocation { get => assemblyLocation; set => assemblyLocation = value; }
         private string assemblyLocation = Assembly.GetExecutingAssembly().Location;
+
+        public static List<SwapItem> AllActions = new();
+
+        private ConfirmDialog Confirm;
 
         public void Initialize(DalamudPluginInterface pluginInterface) {
             PluginInterface = pluginInterface;
@@ -29,14 +31,17 @@ namespace SkillSwap {
                 HelpMessage = "Open mod creation menu"
             });
 
+            Confirm = new ConfirmDialog();
+
             Init();
 
             PluginInterface.UiBuilder.OnBuildUi += Draw;
+            PluginInterface.UiBuilder.OnBuildUi += Confirm.Draw;
             PluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUI();
         }
 
         private void Init() {
-            var sheet = PluginInterface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !string.IsNullOrEmpty(x.Name));
+            var sheet = PluginInterface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !string.IsNullOrEmpty(x.Name) && !x.AffectsPosition);
             foreach(var item in sheet) {
                 string startKey = item.AnimationStart?.Value?.Name?.Value?.Key.ToString();
                 string endKey = item.AnimationEnd?.Value?.Key.ToString();
@@ -52,20 +57,20 @@ namespace SkillSwap {
                 {
                     Id = item.RowId,
                     Icon = item.Icon,
-                    IsPvp = item.IsPvP,
-                    PlayerAction = item.IsPlayerAction,
                     Name = item.Name.ToString(),
                     
                     EndKey = endKey,
                     StartKey = startValid ? startKey : "",
-                    HitKey = hitValid ? hitKey : ""
+                    HitKey = hitValid ? hitKey : "",
                 });
             }
         }
 
         public void Dispose() {
+            PluginInterface.UiBuilder.OnBuildUi -= Draw;
+            PluginInterface.UiBuilder.OnBuildUi -= Confirm.Draw;
+
             PluginInterface.CommandManager.RemoveHandler(commandName);
-            PluginInterface.Dispose();
         }
 
         private void OnCommand(string command, string args) {
@@ -81,8 +86,6 @@ namespace SkillSwap {
         public ushort Icon;
         public uint Id;
         public string Name;
-        public bool IsPvp;
-        public bool PlayerAction;
 
         public string StartKey;
         public string EndKey;

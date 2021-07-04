@@ -29,8 +29,12 @@ namespace SkillSwap {
                 }
                 ImGui.SameLine();
                 if(ImGui.Button("Export to Penumbra")) {
-
+                    ExportPenumbra();
                 }
+
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.9f, 0.1f, 0.1f, 1.0f));
+                ImGui.TextWrapped("DO NOT modify movement abilities (dashes, backflips, etc.)");
+                ImGui.PopStyleColor();
 
                 ImGui.InputText("Name", ref ModName, 100);
                 ImGui.InputText("Author", ref ModAuthor, 100);

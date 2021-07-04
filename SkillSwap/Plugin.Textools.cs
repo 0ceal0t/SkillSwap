@@ -12,7 +12,7 @@ namespace SkillSwap {
     public partial class Plugin {
         public void ExportTextools() {
             var mapping = FileMapping();
-            Textools(ModName, ModAuthor, ModVersion, Config.SaveLocation, mapping);
+            Confirm.SetData(ModName, ModAuthor, ModVersion, Config.SaveLocation, mapping, (name, author, version, save, mapping) => Textools(name, author, version, save, mapping));
         }
 
         public struct TTMPL {
@@ -39,7 +39,7 @@ namespace SkillSwap {
 #nullable disable
         }
 
-        public void Textools(string name, string author, string version, string saveLocation, Dictionary<string, string> mapping) {
+        public void Textools(string name, string author, string version, string saveLocation, Dictionary<string, SwapMapping> mapping) {
             try {
                 List<TTMPL_Simple> simpleParts = new List<TTMPL_Simple>();
                 byte[] newData;
@@ -47,9 +47,8 @@ namespace SkillSwap {
 
                 using (MemoryStream ms = new MemoryStream())
                 using (BinaryWriter writer = new BinaryWriter(ms)) {
-                    foreach(var entry in mapping) {
-                        var newFile = PluginInterface.Data.GetFile(entry.Value);
-                        var modData = CreateType2Data(newFile.Data);
+                    foreach(var entry in RemoveConflicts(mapping)) {
+                        var modData = CreateType2Data(entry.Value);
                         simpleParts.Add(CreateModResource(entry.Key, ModOffset, modData.Length));
                         writer.Write(modData);
                         ModOffset += modData.Length;
