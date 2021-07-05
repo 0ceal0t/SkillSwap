@@ -63,7 +63,9 @@ namespace SkillSwap {
             var swapTmb = FileExists(tmbCurrent) && FileExists(tmbNew);
             var swapPap = FileExists(papCurrent) && FileExists(papNew);
 
-            if (!swapPap || !swapTmb) return;
+            if (!swapPap || !swapTmb) {
+                return;
+            }
 
             dict[keyCurrent] = new SwapMapping
             {

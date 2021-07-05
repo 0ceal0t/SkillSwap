@@ -164,7 +164,7 @@ namespace SkillSwap {
 
                     if(SearchSelect != null) {
                         if (Icon != null) {
-                            ImGui.Image(Icon.ImGuiHandle, new Vector2(22, 22));
+                            ImGui.Image(Icon.ImGuiHandle, new Vector2(24, 24));
                             ImGui.SameLine();
                         }
 
@@ -172,6 +172,15 @@ namespace SkillSwap {
                             Selected = SearchSelect;
                             SelectedText = Selected.Name;
                         }
+                        ImGui.SameLine();
+
+                        DisplayYesNo("START", !string.IsNullOrEmpty(SearchSelect.StartKey));
+                        ImGui.SameLine();
+
+                        DisplayYesNo("END", !string.IsNullOrEmpty(SearchSelect.EndKey));
+                        ImGui.SameLine();
+
+                        DisplayYesNo("HIT", !string.IsNullOrEmpty(SearchSelect.HitKey));
                     }
 
                     ImGui.EndCombo();
@@ -213,6 +222,10 @@ namespace SkillSwap {
                 preItems = (int)Math.Floor(scrollY / itemHeight);
                 showItems = (int)Math.Ceiling(childHeight / itemHeight);
                 postItems = count - showItems - preItems;
+            }
+
+            private static void DisplayYesNo(string text, bool value) {
+                ImGui.TextColored(value ? new Vector4(0.1f, 0.9f, 0.1f, 1.0f) : new Vector4(0.9f, 0.1f, 0.1f, 1.0f), text);
             }
         }
     }

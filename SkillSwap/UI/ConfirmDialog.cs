@@ -1,4 +1,5 @@
-﻿using ImGuiNET;
+﻿using Dalamud.Interface;
+using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace SkillSwap.UI {
 
         private bool Visible = false;
 
+        private HashSet<string> Selected;
+
         public ConfirmDialog() { }
 
         public void SetData(string name, string author, string version, string saveLocation, Dictionary<string, SwapMapping> mapping, Action<string, string, string, string, Dictionary<string, SwapMapping>> onConfirm) {
@@ -28,6 +31,11 @@ namespace SkillSwap.UI {
             SaveLocation = saveLocation;
             Mapping = mapping;
             OnConfirm = onConfirm;
+
+            Selected = new();
+            foreach(var item in Mapping) {
+                Selected.Add(item.Key);
+            }
         }
 
         public void Draw() {
@@ -41,24 +49,48 @@ namespace SkillSwap.UI {
                 ImGui.TextColored(new Vector4(0.1f, 0.9f, 0.1f, 1.0f), SaveLocation);
 
                 var size = ImGui.GetContentRegionAvail() - new Vector2(0, ImGui.GetTextLineHeightWithSpacing() + 8);
+                ImGui.PushTextWrapPos(size.X);
                 ImGui.BeginChild(_ID + "-Child", size, true);
 
                 foreach(var item in Mapping) {
-                    ImGui.TextWrapped($"TMB: {item.Value.OldTmb} -> {item.Value.NewTmb}");
-                    ImGui.TextWrapped($"PAP: {item.Value.OldPap} -> {item.Value.NewPap}");
+                    var selected = Selected.Contains(item.Key);
+                    if(ImGui.Checkbox($"{item.Key}{_ID}", ref selected)) {
+                        if(selected) {
+                            Selected.Add(item.Key);
+                        }
+                        else {
+                            Selected.Remove(item.Key);
+                        }
+                    }
 
+                    PrintLine(item.Value.OldTmb, item.Value.NewTmb);
+                    PrintLine(item.Value.OldPap, item.Value.NewPap);
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
                 }
 
                 ImGui.EndChild();
+                ImGui.PopTextWrapPos();
 
                 if(ImGui.Button("Export" + _ID)) {
                     Visible = false;
-                    OnConfirm(Name, Author, Version, SaveLocation, Mapping);
+                    OnConfirm(Name, Author, Version, SaveLocation, Mapping.Where(item => Selected.Contains(item.Key)).ToDictionary(item => item.Key, item => item.Value));
                 }
 
                 ImGui.End();
             }
+        }
+
+        private void PrintLine(string currentValue, string newValue) {
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.9f, 0.1f, 0.1f, 1.0f));
+            ImGui.TextWrapped(currentValue);
+            ImGui.PopStyleColor();
+
+            ImGui.Text($">  ");
+            ImGui.SameLine();
+
+            ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.1f, 0.9f, 0.1f, 1.0f));
+            ImGui.TextWrapped(newValue);
+            ImGui.PopStyleColor();
         }
     }
 }
