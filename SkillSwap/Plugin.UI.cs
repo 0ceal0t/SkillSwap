@@ -36,6 +36,8 @@ namespace SkillSwap {
                 ImGui.TextWrapped("DO NOT modify movement abilities (dashes, backflips, etc.)");
                 ImGui.PopStyleColor();
 
+                ImGui.TextWrapped("Note: some skill combinations cannot be swapped");
+
                 ImGui.InputText("Name", ref ModName, 100);
                 ImGui.InputText("Author", ref ModAuthor, 100);
                 ImGui.InputText("Version", ref ModVersion, 100);

@@ -48,10 +48,8 @@ namespace SkillSwap {
                 string hitKey = item.ActionTimelineHit?.Value?.Key.ToString();
 
                 var endValid = SwapItem.ValidKey(endKey);
-                if (!endValid) continue;
-
                 var startValid = SwapItem.ValidKey(startKey);
-                var hitValid = SwapItem.ValidKey(hitKey) && hitKey != "normal_hit/normal_hit";
+                var hitValid = SwapItem.ValidKey(hitKey) && !hitKey.Contains("normal_hit");
 
                 AllActions.Add(new SwapItem
                 {
@@ -59,7 +57,7 @@ namespace SkillSwap {
                     Icon = item.Icon,
                     Name = item.Name.ToString(),
                     
-                    EndKey = endKey,
+                    EndKey = endValid ? endKey : "",
                     StartKey = startValid ? startKey : "",
                     HitKey = hitValid ? hitKey : "",
                 });

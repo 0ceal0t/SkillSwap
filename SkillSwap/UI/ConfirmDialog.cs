@@ -64,7 +64,9 @@ namespace SkillSwap.UI {
                     }
 
                     PrintLine(item.Value.OldTmb, item.Value.NewTmb);
-                    PrintLine(item.Value.OldPap, item.Value.NewPap);
+                    if(item.Value.SwapPap) {
+                        PrintLine(item.Value.OldPap, item.Value.NewPap);
+                    }
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
                 }
 

@@ -14,7 +14,9 @@ namespace SkillSwap {
         public string OldPap;
         public string NewTmb;
         public string NewPap;
+
         public string UniqueId;
+        public bool SwapPap;
     }
 
     public partial class Plugin {
@@ -40,13 +42,19 @@ namespace SkillSwap {
         public Dictionary<string, SwapMapping> FileMapping() {
             Dictionary<string, SwapMapping> ret = new();
             foreach(var item in Swaps) {
+                if (item.Current == null || item.New == null) continue;
                 MapSingle(item.Current?.StartKey, item.New?.StartKey, item.Current.Id + "s", ret);
                 MapSingle(item.Current?.EndKey, item.New?.EndKey, item.Current.Id + "e", ret);
                 MapSingle(item.Current?.HitKey, item.New?.HitKey, item.Current.Id + "h", ret);
             }
             foreach (var item in ret) {
-                PluginLog.Log($"Replacing: {item.Value.OldPap} With: {item.Value.NewPap}");
                 PluginLog.Log($"Replacing: {item.Value.OldTmb} With: {item.Value.NewTmb}");
+                if(item.Value.SwapPap) {
+                    PluginLog.Log($"Replacing: {item.Value.OldPap} With: {item.Value.NewPap}");
+                }
+                else {
+                    PluginLog.Log("Pap not being replaced");
+                }
             }
             return ret;
         }
@@ -60,12 +68,18 @@ namespace SkillSwap {
             var papCurrent = GetPapPath(keyCurrent);
             var papNew = GetPapPath(keyNew);
 
-            var swapTmb = FileExists(tmbCurrent) && FileExists(tmbNew);
-            var swapPap = FileExists(papCurrent) && FileExists(papNew);
-
-            if (!swapPap || !swapTmb) {
+            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) { // there needs to be a tmb
+                PluginLog.Log($"{tmbCurrent} {FileExists(tmbCurrent)}");
+                PluginLog.Log($"{tmbNew} {FileExists(tmbNew)}");
                 return;
             }
+            if(FileExists(papNew) && !FileExists(papCurrent)) { //  there is no pap to replace, animations are fucked
+                PluginLog.Log($"{papCurrent} {FileExists(papCurrent)}");
+                PluginLog.Log($"{papNew} {FileExists(papNew)}");
+                //return;
+            }
+
+            var swapPap = FileExists(papCurrent) && FileExists(papNew);
 
             dict[keyCurrent] = new SwapMapping
             {
@@ -73,7 +87,8 @@ namespace SkillSwap {
                 OldPap = papCurrent,
                 NewTmb = tmbNew,
                 NewPap = papNew,
-                UniqueId = uniqueId
+                UniqueId = uniqueId,
+                SwapPap = swapPap
             };
         }
 
@@ -81,8 +96,14 @@ namespace SkillSwap {
             Dictionary<string, byte[]> ret = new();
 
             foreach(var entry in mappings) {
-                Dictionary<string, string> entryMapping = new();
+                var newTmb = PluginInterface.Data.GetFile(entry.Value.NewTmb);
 
+                if(!entry.Value.SwapPap) { // if there is no pap file to take care of, don't worry about it
+                    ret[entry.Value.OldTmb] = newTmb.Data;
+                    continue;
+                }
+
+                Dictionary<string, string> entryMapping = new();
                 var newPap = PluginInterface.Data.GetFile(entry.Value.NewPap);
                 var papString = Encoding.UTF8.GetString(newPap.Data);
                 MatchCollection papMatches = rx.Matches(papString);
@@ -105,8 +126,6 @@ namespace SkillSwap {
 
                     idx++;
                 }
-
-                var newTmb = PluginInterface.Data.GetFile(entry.Value.NewTmb);
 
                 ret[entry.Value.OldPap] = ReplaceAll(newPap.Data, entryMapping);
                 ret[entry.Value.OldTmb] = ReplaceAll(newTmb.Data, entryMapping);
