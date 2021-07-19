@@ -67,6 +67,9 @@ namespace SkillSwap.UI {
                     if(item.Value.SwapPap) {
                         PrintLine(item.Value.OldPap, item.Value.NewPap);
                     }
+                    else if(!item.Value.NoPap) {
+                        ImGui.TextWrapped("This .tmb will have its animations stripped (if it has any) because .pap files to swap could not be found. VFXs and sounds will be left intact.");
+                    }
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
                 }
 

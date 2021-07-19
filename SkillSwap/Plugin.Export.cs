@@ -17,6 +17,7 @@ namespace SkillSwap {
 
         public string UniqueId;
         public bool SwapPap;
+        public bool NoPap;
     }
 
     public partial class Plugin {
@@ -68,18 +69,12 @@ namespace SkillSwap {
             var papCurrent = GetPapPath(keyCurrent);
             var papNew = GetPapPath(keyNew);
 
-            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) { // there needs to be a tmb
-                PluginLog.Log($"{tmbCurrent} {FileExists(tmbCurrent)}");
-                PluginLog.Log($"{tmbNew} {FileExists(tmbNew)}");
+            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) {
                 return;
-            }
-            if(FileExists(papNew) && !FileExists(papCurrent)) { //  there is no pap to replace, animations are fucked
-                PluginLog.Log($"{papCurrent} {FileExists(papCurrent)}");
-                PluginLog.Log($"{papNew} {FileExists(papNew)}");
-                //return;
             }
 
             var swapPap = FileExists(papCurrent) && FileExists(papNew);
+            var noPap = !FileExists(papCurrent) && !FileExists(papNew);
 
             dict[keyCurrent] = new SwapMapping
             {
@@ -88,7 +83,8 @@ namespace SkillSwap {
                 NewTmb = tmbNew,
                 NewPap = papNew,
                 UniqueId = uniqueId,
-                SwapPap = swapPap
+                SwapPap = swapPap,
+                NoPap = noPap,
             };
         }
 
@@ -98,11 +94,20 @@ namespace SkillSwap {
             foreach(var entry in mappings) {
                 var newTmb = PluginInterface.Data.GetFile(entry.Value.NewTmb);
 
-                if(!entry.Value.SwapPap) { // if there is no pap file to take care of, don't worry about it
-                    ret[entry.Value.OldTmb] = newTmb.Data;
+                if(!entry.Value.SwapPap) {
+                    if(entry.Value.NoPap) {
+                        ret[entry.Value.OldTmb] = newTmb.Data; // whatever, just keep going
+                        continue;
+                    }
+
+                    // we need to make sure that there aren't any PAP entries in the new tmb, since there isn't a new PAP file to cary over
+                    Dictionary<string, string> papMapping = new();
+                    papMapping.Add("C010", "0000"); // this is mega scuffed
+                    ret[entry.Value.OldTmb] = ReplaceAll(newTmb.Data, papMapping);
                     continue;
                 }
 
+                // swapping PAPs, which means that we need to make the ids of the new PAP unique
                 Dictionary<string, string> entryMapping = new();
                 var newPap = PluginInterface.Data.GetFile(entry.Value.NewPap);
                 var papString = Encoding.UTF8.GetString(newPap.Data);
