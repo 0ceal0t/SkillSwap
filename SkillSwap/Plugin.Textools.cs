@@ -1,12 +1,9 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public partial class Plugin {
@@ -41,12 +38,12 @@ namespace SkillSwap {
 
         public void Textools(string name, string author, string version, string saveLocation, Dictionary<string, SwapMapping> mapping) {
             try {
-                List<TTMPL_Simple> simpleParts = new List<TTMPL_Simple>();
+                List<TTMPL_Simple> simpleParts = new();
                 byte[] newData;
                 int ModOffset = 0;
 
-                using (MemoryStream ms = new MemoryStream())
-                using (BinaryWriter writer = new BinaryWriter(ms)) {
+                using (MemoryStream ms = new())
+                using (BinaryWriter writer = new(ms)) {
                     foreach(var entry in RemoveConflicts(mapping)) {
                         var modData = CreateType2Data(entry.Value);
                         simpleParts.Add(CreateModResource(entry.Key, ModOffset, modData.Length));
@@ -56,7 +53,7 @@ namespace SkillSwap {
                     newData = ms.ToArray();
                 }
 
-                TTMPL mod = new TTMPL();
+                TTMPL mod = new();
                 mod.TTMPVersion = "1.3s";
                 mod.Name = name;
                 mod.Author = author;
@@ -84,10 +81,10 @@ namespace SkillSwap {
             }
         }
 
-        public TTMPL_Simple CreateModResource(string path, int modOffset, int modSize) {
-            TTMPL_Simple simple = new TTMPL_Simple();
+        public static TTMPL_Simple CreateModResource(string path, int modOffset, int modSize) {
+            TTMPL_Simple simple = new();
             string[] split = path.Split('/');
-            simple.Name = split[split.Length - 1];
+            simple.Name = split[^1];
             simple.Category = "Raw File Import";
             simple.FullPath = path;
             simple.IsDefault = false;

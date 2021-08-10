@@ -1,12 +1,9 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public struct SwapMapping {
@@ -21,13 +18,13 @@ namespace SkillSwap {
     }
 
     public partial class Plugin {
-        public static Regex rx = new Regex(@"cbbm(_[a-zA-Z0-9]+)+", RegexOptions.Compiled);
+        public static readonly Regex rx = new(@"cbbm(_[a-zA-Z0-9]+)+", RegexOptions.Compiled);
 
-        public string GetTmbPath(string key) {
+        public static string GetTmbPath(string key) {
             return "chara/action/" + key + ".tmb";
         }
 
-        public string GetPapPath(string key) {
+        public static string GetPapPath(string key) {
             if(key.StartsWith("ws/")) {
                 var split = key.Split('/');
                 var weapon = split[1];
@@ -139,7 +136,7 @@ namespace SkillSwap {
             return ret;
         }
 
-        private byte[] ReplaceAll(byte[] data, Dictionary<string, string> mapping) {
+        private static byte[] ReplaceAll(byte[] data, Dictionary<string, string> mapping) {
             var ret = data.ToArray();
             foreach (var entry in mapping) {
                 var match = Encoding.ASCII.GetBytes(entry.Key);

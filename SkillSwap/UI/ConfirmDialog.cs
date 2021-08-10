@@ -85,7 +85,7 @@ namespace SkillSwap.UI {
             }
         }
 
-        private void PrintLine(string currentValue, string newValue) {
+        private static void PrintLine(string currentValue, string newValue) {
             ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.9f, 0.1f, 0.1f, 1.0f));
             ImGui.TextWrapped(currentValue);
             ImGui.PopStyleColor();

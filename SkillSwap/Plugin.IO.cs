@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SkillSwap {
     public partial class Plugin {
-        public byte[] CreateType2Data(byte[] dataToCreate) {
+        public static byte[] CreateType2Data(byte[] dataToCreate) {
             var newData = new List<byte>();
             var headerData = new List<byte>();
             var dataBlocks = new List<byte>();
