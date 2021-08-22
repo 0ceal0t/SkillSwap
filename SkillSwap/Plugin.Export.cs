@@ -34,7 +34,7 @@ namespace SkillSwap {
         }
 
         public bool FileExists(string path) {
-            return PluginInterface.Data.FileExists(path);
+            return DataManager.FileExists(path);
         }
 
         public Dictionary<string, SwapMapping> FileMapping() {
@@ -89,7 +89,7 @@ namespace SkillSwap {
             Dictionary<string, byte[]> ret = new();
 
             foreach(var entry in mappings) {
-                var newTmb = PluginInterface.Data.GetFile(entry.Value.NewTmb);
+                var newTmb = DataManager.GetFile(entry.Value.NewTmb);
 
                 if(!entry.Value.SwapPap) {
                     if(entry.Value.NoPap) {
@@ -106,7 +106,7 @@ namespace SkillSwap {
 
                 // swapping PAPs, which means that we need to make the ids of the new PAP unique
                 Dictionary<string, string> entryMapping = new();
-                var newPap = PluginInterface.Data.GetFile(entry.Value.NewPap);
+                var newPap = DataManager.GetFile(entry.Value.NewPap);
                 var papString = Encoding.UTF8.GetString(newPap.Data);
                 MatchCollection papMatches = rx.Matches(papString);
 

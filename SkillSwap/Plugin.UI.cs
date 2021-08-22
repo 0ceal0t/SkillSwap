@@ -66,12 +66,11 @@ namespace SkillSwap {
         public class Swap {
             private static int IDX = 0;
 
-            private string Id;
-
             public bool ToDelete = false;
 
-            private ActionSelect _Current;
-            private ActionSelect _New;
+            private readonly string Id;
+            private readonly ActionSelect _Current;
+            private readonly ActionSelect _New;
 
             public SwapItem Current => _Current.Selected;
             public SwapItem New => _New.Selected;
@@ -108,9 +107,9 @@ namespace SkillSwap {
         public class ActionSelect {
             private static int IDX = 0;
 
-            private DalamudPluginInterface PluginInterface;
-            private string Text;
-            private string Id;
+            private readonly DalamudPluginInterface PluginInterface;
+            private readonly string Text;
+            private readonly string Id;
             public ImGuiScene.TextureWrap Icon;
 
             public SwapItem SearchSelect = null;
@@ -120,7 +119,7 @@ namespace SkillSwap {
 
             private string SearchText = "";
             private List<SwapItem> _Searched = null;
-            private List<SwapItem> Searched => _Searched == null ? AllActions : _Searched;
+            private List<SwapItem> Searched => _Searched ?? AllActions;
 
             public ActionSelect(string text, DalamudPluginInterface pluginInterface) {
                 Text = text;
@@ -195,10 +194,10 @@ namespace SkillSwap {
                 if (iconId > 0) {
                     TexFile tex;
                     try {
-                        tex = PluginInterface.Data.GetIcon(iconId);
+                        tex = DataManager.GetIcon(iconId);
                     }
                     catch(Exception) {
-                        tex = PluginInterface.Data.GetIcon(0);
+                        tex = DataManager.GetIcon(0);
                     }
                     Icon = PluginInterface.UiBuilder.LoadImageRaw(BGRA_to_RGBA(tex.ImageData), tex.Header.Width, tex.Header.Height, 4);
                 }

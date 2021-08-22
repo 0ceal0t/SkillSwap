@@ -1,9 +1,10 @@
-﻿using Dalamud.Game.Command;
+﻿using Dalamud.Data;
+using Dalamud.Game.ClientState;
+using Dalamud.Game.Command;
 using Dalamud.Plugin;
 using SkillSwap.UI;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -12,22 +13,35 @@ namespace SkillSwap {
         public string Name => "SkillSwap";
         private const string commandName = "/skillswap";
 
-        private DalamudPluginInterface PluginInterface;
-        private Configuration Config;
+        public static List<SwapItem> AllActions { get; private set; }
+
+        public static DalamudPluginInterface PluginInterface { get; private set; }
+        public static ClientState ClientState { get; private set; }
+        public static CommandManager CommandManager { get; private set; }
+        public static DataManager DataManager { get; private set; }
+
+        private readonly Configuration Config;
         public string AssemblyLocation { get => assemblyLocation; set => assemblyLocation = value; }
         private string assemblyLocation = Assembly.GetExecutingAssembly().Location;
+        private readonly ConfirmDialog Confirm;
 
-        public static List<SwapItem> AllActions = new();
-
-        private ConfirmDialog Confirm;
-
-        public void Initialize(DalamudPluginInterface pluginInterface) {
+        public Plugin(
+                DalamudPluginInterface pluginInterface,
+                ClientState clientState,
+                CommandManager commandManager,
+                DataManager dataManager
+            ) {
             PluginInterface = pluginInterface;
+            ClientState = clientState;
+            CommandManager = commandManager;
+            DataManager = dataManager;
+
+            AllActions = new();
 
             Config = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
             Config.Initialize(PluginInterface);
 
-            PluginInterface.CommandManager.AddHandler(commandName, new CommandInfo(OnCommand) {
+            CommandManager.AddHandler(commandName, new CommandInfo(OnCommand) {
                 HelpMessage = "Open mod creation menu"
             });
 
@@ -35,13 +49,13 @@ namespace SkillSwap {
 
             Init();
 
-            PluginInterface.UiBuilder.OnBuildUi += Draw;
-            PluginInterface.UiBuilder.OnBuildUi += Confirm.Draw;
-            PluginInterface.UiBuilder.OnOpenConfigUi += (sender, args) => DrawConfigUI();
+            PluginInterface.UiBuilder.Draw += Draw;
+            PluginInterface.UiBuilder.Draw += Confirm.Draw;
+            PluginInterface.UiBuilder.OpenConfigUi += DrawConfigUI;
         }
 
         private void Init() {
-            var sheet = PluginInterface.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !string.IsNullOrEmpty(x.Name) && !x.AffectsPosition);
+            var sheet = DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>().Where(x => !string.IsNullOrEmpty(x.Name) && !x.AffectsPosition);
             foreach(var item in sheet) {
                 string startKey = item.AnimationStart?.Value?.Name?.Value?.Key.ToString();
                 string endKey = item.AnimationEnd?.Value?.Key.ToString();
@@ -65,17 +79,18 @@ namespace SkillSwap {
         }
 
         public void Dispose() {
-            PluginInterface.UiBuilder.OnBuildUi -= Draw;
-            PluginInterface.UiBuilder.OnBuildUi -= Confirm.Draw;
+            PluginInterface.UiBuilder.Draw -= Draw;
+            PluginInterface.UiBuilder.Draw -= Confirm.Draw;
+            PluginInterface.UiBuilder.OpenConfigUi -= DrawConfigUI;
 
-            PluginInterface.CommandManager.RemoveHandler(commandName);
+            CommandManager.RemoveHandler(commandName);
         }
 
         private void OnCommand(string command, string args) {
             Visible = true;
         }
 
-        private void DrawConfigUI() {
+        private void DrawConfigUI(object sender, EventArgs eventArgs) {
             Visible = true;
         }
     }
