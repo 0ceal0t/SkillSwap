@@ -1,12 +1,9 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public struct SwapMapping {
@@ -17,16 +14,17 @@ namespace SkillSwap {
 
         public string UniqueId;
         public bool SwapPap;
+        public bool NoPap;
     }
 
     public partial class Plugin {
-        public static Regex rx = new Regex(@"cbbm(_[a-zA-Z0-9]+)+", RegexOptions.Compiled);
+        public static readonly Regex rx = new(@"cbbm(_[a-zA-Z0-9]+)+", RegexOptions.Compiled);
 
-        public string GetTmbPath(string key) {
+        public static string GetTmbPath(string key) {
             return "chara/action/" + key + ".tmb";
         }
 
-        public string GetPapPath(string key) {
+        public static string GetPapPath(string key) {
             if(key.StartsWith("ws/")) {
                 var split = key.Split('/');
                 var weapon = split[1];
@@ -36,7 +34,7 @@ namespace SkillSwap {
         }
 
         public bool FileExists(string path) {
-            return PluginInterface.Data.FileExists(path);
+            return DataManager.FileExists(path);
         }
 
         public Dictionary<string, SwapMapping> FileMapping() {
@@ -68,18 +66,12 @@ namespace SkillSwap {
             var papCurrent = GetPapPath(keyCurrent);
             var papNew = GetPapPath(keyNew);
 
-            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) { // there needs to be a tmb
-                PluginLog.Log($"{tmbCurrent} {FileExists(tmbCurrent)}");
-                PluginLog.Log($"{tmbNew} {FileExists(tmbNew)}");
+            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) {
                 return;
-            }
-            if(FileExists(papNew) && !FileExists(papCurrent)) { //  there is no pap to replace, animations are fucked
-                PluginLog.Log($"{papCurrent} {FileExists(papCurrent)}");
-                PluginLog.Log($"{papNew} {FileExists(papNew)}");
-                //return;
             }
 
             var swapPap = FileExists(papCurrent) && FileExists(papNew);
+            var noPap = !FileExists(papCurrent) && !FileExists(papNew);
 
             dict[keyCurrent] = new SwapMapping
             {
@@ -88,7 +80,8 @@ namespace SkillSwap {
                 NewTmb = tmbNew,
                 NewPap = papNew,
                 UniqueId = uniqueId,
-                SwapPap = swapPap
+                SwapPap = swapPap,
+                NoPap = noPap,
             };
         }
 
@@ -96,15 +89,24 @@ namespace SkillSwap {
             Dictionary<string, byte[]> ret = new();
 
             foreach(var entry in mappings) {
-                var newTmb = PluginInterface.Data.GetFile(entry.Value.NewTmb);
+                var newTmb = DataManager.GetFile(entry.Value.NewTmb);
 
-                if(!entry.Value.SwapPap) { // if there is no pap file to take care of, don't worry about it
-                    ret[entry.Value.OldTmb] = newTmb.Data;
+                if(!entry.Value.SwapPap) {
+                    if(entry.Value.NoPap) {
+                        ret[entry.Value.OldTmb] = newTmb.Data; // whatever, just keep going
+                        continue;
+                    }
+
+                    // we need to make sure that there aren't any PAP entries in the new tmb, since there isn't a new PAP file to cary over
+                    Dictionary<string, string> papMapping = new();
+                    papMapping.Add("C010", "0000"); // this is mega scuffed
+                    ret[entry.Value.OldTmb] = ReplaceAll(newTmb.Data, papMapping);
                     continue;
                 }
 
+                // swapping PAPs, which means that we need to make the ids of the new PAP unique
                 Dictionary<string, string> entryMapping = new();
-                var newPap = PluginInterface.Data.GetFile(entry.Value.NewPap);
+                var newPap = DataManager.GetFile(entry.Value.NewPap);
                 var papString = Encoding.UTF8.GetString(newPap.Data);
                 MatchCollection papMatches = rx.Matches(papString);
 
@@ -134,7 +136,7 @@ namespace SkillSwap {
             return ret;
         }
 
-        private byte[] ReplaceAll(byte[] data, Dictionary<string, string> mapping) {
+        private static byte[] ReplaceAll(byte[] data, Dictionary<string, string> mapping) {
             var ret = data.ToArray();
             foreach (var entry in mapping) {
                 var match = Encoding.ASCII.GetBytes(entry.Key);

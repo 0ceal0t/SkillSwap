@@ -1,4 +1,5 @@
-﻿using Dalamud.Plugin;
+﻿using Dalamud.Logging;
+using Dalamud.Plugin;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -18,14 +19,16 @@ namespace SkillSwap {
             public string Name;
             public string Author;
             public string Description;
+#nullable enable
             public string? Version;
             public string? Website;
+#nullable disable
             public Dictionary<string, string> FileSwaps;
         }
 
         public void Penumbra(string name, string author, string version, string saveLocation, Dictionary<string, SwapMapping> mapping) {
             try {
-                PenumbraMod mod = new PenumbraMod();
+                PenumbraMod mod = new();
                 mod.Name = name;
                 mod.Author = author;
                 mod.Description = "Exported from SkillSwap";
