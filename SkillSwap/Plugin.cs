@@ -90,7 +90,7 @@ namespace SkillSwap {
             Visible = true;
         }
 
-        private void DrawConfigUI(object sender, EventArgs eventArgs) {
+        private void DrawConfigUI() {
             Visible = true;
         }
     }
