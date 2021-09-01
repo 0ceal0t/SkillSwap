@@ -2,6 +2,8 @@
 
 A [XIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) plugin to create animation replacement mods. Mods can be exported either as a Textools modpack or Penumbra mod
 
+Icon by [PAPACHIN](https://www.xivmodarchive.com/user/192152)
+
 ## Usage
 1. Install using `/xlplugins`
 2. Open menu using `/skillswap`
