@@ -19,13 +19,18 @@ namespace SkillSwap {
 
     public partial class Plugin {
         public static readonly Regex rx = new(@"cbbm(_[a-zA-Z0-9]+)+", RegexOptions.Compiled);
+        private static readonly Random random = new Random();
 
         public static string GetTmbPath(string key) {
             return "chara/action/" + key + ".tmb";
         }
 
         public static string GetPapPath(string key) {
-            if(key.StartsWith("ws/")) {
+            // ability/2gl_astro/abl023 -> chara/human/c0101/animation/a0001/bt_common/ability/2gl_astro/abl023.pap
+            // magic/2gl_astro/mgc012 -> chara/human/c0101/animation/a0001/bt_common/resident/action.pap
+            // ^ not much that can be done about this one
+
+            if (key.StartsWith("ws/")) {
                 var split = key.Split('/');
                 var weapon = split[1];
                 return "chara/human/c0101/animation/a0001/" + weapon + "/" + key + ".pap";
@@ -41,9 +46,12 @@ namespace SkillSwap {
             Dictionary<string, SwapMapping> ret = new();
             foreach(var item in Swaps) {
                 if (item.Current == null || item.New == null) continue;
-                MapSingle(item.Current?.StartKey, item.New?.StartKey, item.Current.Id + "s", ret);
-                MapSingle(item.Current?.EndKey, item.New?.EndKey, item.Current.Id + "e", ret);
-                MapSingle(item.Current?.HitKey, item.New?.HitKey, item.Current.Id + "h", ret);
+
+                var uniqueId = RandomString(10);
+
+                MapSingle(item.Current?.StartKey, item.New?.StartKey, "s" + uniqueId, ret);
+                MapSingle(item.Current?.EndKey, item.New?.EndKey, "e" + uniqueId, ret);
+                MapSingle(item.Current?.HitKey, item.New?.HitKey, "h" + uniqueId, ret);
             }
             foreach (var item in ret) {
                 PluginLog.Log($"Replacing: {item.Value.OldTmb} With: {item.Value.NewTmb}");
@@ -161,6 +169,12 @@ namespace SkillSwap {
                     return false;
 
             return true;
+        }
+
+        public static string RandomString(int length) {
+            const string chars = "abcdefghijklmnopqrstuvwxyz";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }

@@ -6,8 +6,8 @@
     <AssemblyTitle>SkillSwap</AssemblyTitle>
     <Product>SkillSwap</Product>
     <Copyright>Copyright ©  2020</Copyright>
-    <AssemblyVersion>1.1.0.1</AssemblyVersion>
-    <FileVersion>1.1.0.1</FileVersion>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <FileVersion>1.2.0.0</FileVersion>
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Authors>ocealot</Authors>
