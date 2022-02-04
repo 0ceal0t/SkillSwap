@@ -4,6 +4,9 @@ A [XIVQuickLauncher](https://github.com/goatcorp/FFXIVQuickLauncher) plugin to c
 
 Icon by [PAPACHIN](https://www.xivmodarchive.com/user/192152)
 
+## Issues with certain skills
+SkillSwap does some automatic renaming of animation ids to prevent conflicts. However, sometimes it doesn't work. If you are having issues, consider using [VFXEditor](https://github.com/0ceal0t/Dalamud-VFXEditor) instead, which allows you to manually swap `.tmb` and `.pap` files. Note that you may need to manually change some pap animation ids.
+
 ## Usage
 1. Install using `/xlplugins`
 2. Open menu using `/skillswap`
