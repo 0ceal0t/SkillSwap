@@ -144,7 +144,7 @@ namespace SkillSwap {
                         ResetScroll = true;
                     }
 
-                    ImGui.BeginChild("Select" + Id, new Vector2(ImGui.GetWindowContentRegionWidth(), 200), true);
+                    ImGui.BeginChild("Select" + Id, new Vector2(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X, 200), true);
 
                     DisplayVisible(Searched.Count, out int preItems, out int showItems, out int postItems, out float itemHeight);
                     if (ResetScroll) { ImGui.SetScrollHereY(); };
