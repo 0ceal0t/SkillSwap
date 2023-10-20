@@ -1,5 +1,4 @@
-﻿using Dalamud.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -39,12 +38,12 @@ namespace SkillSwap {
         }
 
         public bool FileExists(string path) {
-            return DataManager.FileExists(path);
+            return Services.DataManager.FileExists(path);
         }
 
         public Dictionary<string, SwapMapping> FileMapping() {
             Dictionary<string, SwapMapping> ret = new();
-            foreach(var item in Swaps) {
+            foreach (var item in Swaps) {
                 if (item.Current == null || item.New == null) continue;
 
                 var uniqueId = RandomString(10);
@@ -54,12 +53,12 @@ namespace SkillSwap {
                 MapSingle(item.Current?.HitKey, item.New?.HitKey, "h" + uniqueId, ret);
             }
             foreach (var item in ret) {
-                PluginLog.Log($"Replacing: {item.Value.OldTmb} With: {item.Value.NewTmb}");
-                if(item.Value.SwapPap) {
-                    PluginLog.Log($"Replacing: {item.Value.OldPap} With: {item.Value.NewPap}");
+                Services.Log($"Replacing: {item.Value.OldTmb} With: {item.Value.NewTmb}");
+                if (item.Value.SwapPap) {
+                    Services.Log($"Replacing: {item.Value.OldPap} With: {item.Value.NewPap}");
                 }
                 else {
-                    PluginLog.Log("Pap not being replaced");
+                    Services.Log("Pap not being replaced");
                 }
             }
             return ret;
@@ -74,15 +73,14 @@ namespace SkillSwap {
             var papCurrent = GetPapPath(keyCurrent);
             var papNew = GetPapPath(keyNew);
 
-            if(!FileExists(tmbCurrent) || !FileExists(tmbNew)) {
+            if (!FileExists(tmbCurrent) || !FileExists(tmbNew)) {
                 return;
             }
 
             var swapPap = FileExists(papCurrent) && FileExists(papNew);
             var noPap = !FileExists(papCurrent) && !FileExists(papNew);
 
-            dict[keyCurrent] = new SwapMapping
-            {
+            dict[keyCurrent] = new SwapMapping {
                 OldTmb = tmbCurrent,
                 OldPap = papCurrent,
                 NewTmb = tmbNew,
@@ -96,11 +94,11 @@ namespace SkillSwap {
         public Dictionary<string, byte[]> RemoveConflicts(Dictionary<string, SwapMapping> mappings) {
             Dictionary<string, byte[]> ret = new();
 
-            foreach(var entry in mappings) {
-                var newTmb = DataManager.GetFile(entry.Value.NewTmb);
+            foreach (var entry in mappings) {
+                var newTmb = Services.DataManager.GetFile(entry.Value.NewTmb);
 
-                if(!entry.Value.SwapPap) {
-                    if(entry.Value.NoPap) {
+                if (!entry.Value.SwapPap) {
+                    if (entry.Value.NoPap) {
                         ret[entry.Value.OldTmb] = newTmb.Data; // whatever, just keep going
                         continue;
                     }
@@ -114,16 +112,16 @@ namespace SkillSwap {
 
                 // swapping PAPs, which means that we need to make the ids of the new PAP unique
                 Dictionary<string, string> entryMapping = new();
-                var newPap = DataManager.GetFile(entry.Value.NewPap);
+                var newPap = Services.DataManager.GetFile(entry.Value.NewPap);
                 var papString = Encoding.UTF8.GetString(newPap.Data);
-                MatchCollection papMatches = rx.Matches(papString);
+                var papMatches = rx.Matches(papString);
 
-                int idx = 0;
+                var idx = 0;
                 foreach (Match m in papMatches) {
                     var match = m.Value;
                     if (entryMapping.ContainsKey(match)) continue;
 
-                    var oldSuffix = match.Replace("cbbm_","");
+                    var oldSuffix = match.Replace("cbbm_", "");
                     var targetLength = oldSuffix.Length;
 
                     var newSuffix = (entry.Value.UniqueId + idx).PadLeft(targetLength, '0');
@@ -132,7 +130,7 @@ namespace SkillSwap {
 
                     entryMapping[match] = "cbbm_" + newSuffix;
 
-                    PluginLog.Log($"{match} {entryMapping[match]}");
+                    Services.Log($"{match} {entryMapping[match]}");
 
                     idx++;
                 }
@@ -150,8 +148,8 @@ namespace SkillSwap {
                 var match = Encoding.ASCII.GetBytes(entry.Key);
                 var replace = Encoding.ASCII.GetBytes(entry.Value);
 
-                for (int i = 0; i < ret.Length; i++) {
-                    if(!IsMatch(ret, i, match)) {
+                for (var i = 0; i < ret.Length; i++) {
+                    if (!IsMatch(ret, i, match)) {
                         continue;
                     }
                     Buffer.BlockCopy(replace, 0, ret, i, replace.Length);
@@ -164,7 +162,7 @@ namespace SkillSwap {
             if (candidate.Length > (array.Length - position))
                 return false;
 
-            for (int i = 0; i < candidate.Length; i++)
+            for (var i = 0; i < candidate.Length; i++)
                 if (array[position + i] != candidate[i])
                     return false;
 

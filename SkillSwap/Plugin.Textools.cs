@@ -1,5 +1,4 @@
-﻿using Dalamud.Logging;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,11 +39,11 @@ namespace SkillSwap {
             try {
                 List<TTMPL_Simple> simpleParts = new();
                 byte[] newData;
-                int ModOffset = 0;
+                var ModOffset = 0;
 
                 using (MemoryStream ms = new())
                 using (BinaryWriter writer = new(ms)) {
-                    foreach(var entry in RemoveConflicts(mapping)) {
+                    foreach (var entry in RemoveConflicts(mapping)) {
                         var modData = CreateType2Data(entry.Value);
                         simpleParts.Add(CreateModResource(entry.Key, ModOffset, modData.Length));
                         writer.Write(modData);
@@ -62,28 +61,28 @@ namespace SkillSwap {
                 mod.ModPackPages = null;
                 mod.SimpleModsList = simpleParts.ToArray();
 
-                string tempDir = Path.Combine(saveLocation, "TEXTOOLS_TEMP");
+                var tempDir = Path.Combine(saveLocation, "TEXTOOLS_TEMP");
                 Directory.CreateDirectory(tempDir);
-                string mdpPath = Path.Combine(tempDir, "TTMPD.mpd");
-                string mplPath = Path.Combine(tempDir, "TTMPL.mpl");
-                string mplString = JsonConvert.SerializeObject(mod);
+                var mdpPath = Path.Combine(tempDir, "TTMPD.mpd");
+                var mplPath = Path.Combine(tempDir, "TTMPL.mpl");
+                var mplString = JsonConvert.SerializeObject(mod);
                 File.WriteAllText(mplPath, mplString);
                 File.WriteAllBytes(mdpPath, newData);
 
-                string zipLocation = Path.Combine(saveLocation, name + ".ttmp2");
+                var zipLocation = Path.Combine(saveLocation, name + ".ttmp2");
                 ZipFile.CreateFromDirectory(tempDir, zipLocation);
 
                 Directory.Delete(tempDir, true);
-                PluginLog.Log("Exported To: " + zipLocation);
+                Services.Log("Exported To: " + zipLocation);
             }
             catch (Exception e) {
-                PluginLog.LogError(e, "Could not export to TexTools");
+                Services.Error(e, "Could not export to TexTools");
             }
         }
 
         public static TTMPL_Simple CreateModResource(string path, int modOffset, int modSize) {
             TTMPL_Simple simple = new();
-            string[] split = path.Split('/');
+            var split = path.Split('/');
             simple.Name = split[^1];
             simple.Category = "Raw File Import";
             simple.FullPath = path;

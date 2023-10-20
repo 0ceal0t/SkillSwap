@@ -1,13 +1,12 @@
 ﻿using Dalamud.Interface;
+using Dalamud.Interface.Internal;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin;
 using ImGuiNET;
-using Lumina.Data.Files;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public partial class Plugin {
@@ -24,11 +23,11 @@ namespace SkillSwap {
             ImGuiHelpers.ForceNextWindowMainViewport();
             ImGui.SetNextWindowSize(new Vector2(850, 500), ImGuiCond.FirstUseEver);
             if (ImGui.Begin("SkillSwap", ref Visible)) {
-                if(ImGui.Button("Export to Textools")) {
+                if (ImGui.Button("Export to Textools")) {
                     ExportTextools();
                 }
                 ImGui.SameLine();
-                if(ImGui.Button("Export to Penumbra")) {
+                if (ImGui.Button("Export to Penumbra")) {
                     ExportPenumbra();
                 }
 
@@ -41,20 +40,20 @@ namespace SkillSwap {
                 ImGui.InputText("Name", ref ModName, 100);
                 ImGui.InputText("Author", ref ModAuthor, 100);
                 ImGui.InputText("Version", ref ModVersion, 100);
-                if(ImGui.InputText("Save Location", ref Config.SaveLocation, 200)) {
+                if (ImGui.InputText("Save Location", ref Config.SaveLocation, 200)) {
                     Config.Save();
                 }
 
                 var space = ImGui.GetContentRegionAvail();
                 ImGui.BeginChild("ItemChild", space, true);
 
-                foreach(var item in Swaps) {
+                foreach (var item in Swaps) {
                     item.Draw();
                 }
                 Swaps.RemoveAll(x => x.ToDelete);
 
-                if(ImGui.Button("+ NEW")) {
-                    Swaps.Add(new Swap(PluginInterface));
+                if (ImGui.Button("+ NEW")) {
+                    Swaps.Add(new Swap(Services.PluginInterface));
                 }
 
                 ImGui.EndChild();
@@ -110,7 +109,7 @@ namespace SkillSwap {
             private readonly DalamudPluginInterface PluginInterface;
             private readonly string Text;
             private readonly string Id;
-            public ImGuiScene.TextureWrap Icon;
+            public IDalamudTextureWrap Icon;
 
             public SwapItem SearchSelect = null;
 
@@ -131,11 +130,11 @@ namespace SkillSwap {
                 ImGui.Text(Text);
                 ImGui.SameLine();
                 ImGui.SetNextItemWidth(200f);
-                if(ImGui.BeginCombo(Id, SelectedText, ImGuiComboFlags.HeightLargest)) {
+                if (ImGui.BeginCombo(Id, SelectedText, ImGuiComboFlags.HeightLargest)) {
 
-                    bool ResetScroll = false;
+                    var ResetScroll = false;
                     if (ImGui.InputText("Search" + Id, ref SearchText, 100)) {
-                        if(SearchText.Length == 0) {
+                        if (SearchText.Length == 0) {
                             _Searched = null;
                         }
                         else {
@@ -146,14 +145,14 @@ namespace SkillSwap {
 
                     ImGui.BeginChild("Select" + Id, new Vector2(ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X, 200), true);
 
-                    DisplayVisible(Searched.Count, out int preItems, out int showItems, out int postItems, out float itemHeight);
+                    DisplayVisible(Searched.Count, out var preItems, out var showItems, out var postItems, out var itemHeight);
                     if (ResetScroll) { ImGui.SetScrollHereY(); };
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + preItems * itemHeight);
 
-                    int idx = 0;
+                    var idx = 0;
                     foreach (var item in Searched) {
                         if (idx < preItems || idx > (preItems + showItems)) { idx++; continue; }
-                        if(ImGui.Selectable($"{item.Name}{Id}{item.Id}", item == SearchSelect)) {
+                        if (ImGui.Selectable($"{item.Name}{Id}{item.Id}", item == SearchSelect)) {
                             SearchSelect = item;
                             LoadIcon(item.Icon);
                         }
@@ -163,7 +162,7 @@ namespace SkillSwap {
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + postItems * itemHeight);
                     ImGui.EndChild();
 
-                    if(SearchSelect != null) {
+                    if (SearchSelect != null) {
                         if (Icon != null) {
                             ImGui.Image(Icon.ImGuiHandle, new Vector2(24, 24));
                             ImGui.SameLine();
@@ -189,30 +188,7 @@ namespace SkillSwap {
             }
 
             public void LoadIcon(ushort iconId) {
-                Icon?.Dispose();
-                Icon = null;
-                if (iconId > 0) {
-                    TexFile tex;
-                    try {
-                        tex = DataManager.GetIcon(iconId);
-                    }
-                    catch(Exception) {
-                        tex = DataManager.GetIcon(0);
-                    }
-                    Icon = PluginInterface.UiBuilder.LoadImageRaw(BGRA_to_RGBA(tex.ImageData), tex.Header.Width, tex.Header.Height, 4);
-                }
-            }
-
-            public static byte[] BGRA_to_RGBA(byte[] data) {
-                byte[] ret = new byte[data.Length];
-                for (int i = 0; i < data.Length / 4; i++) {
-                    var idx = i * 4;
-                    ret[idx + 0] = data[idx + 2];
-                    ret[idx + 1] = data[idx + 1];
-                    ret[idx + 2] = data[idx + 0];
-                    ret[idx + 3] = data[idx + 3];
-                }
-                return ret;
+                Icon = Services.TextureProvider.GetIcon((uint)(iconId > 0 ? iconId : 0));
             }
 
             public static void DisplayVisible(int count, out int preItems, out int showItems, out int postItems, out float itemHeight) {

@@ -3,8 +3,7 @@ using Dalamud.Plugin;
 using System;
 using System.IO;
 
-namespace SkillSwap
-{
+namespace SkillSwap {
     [Serializable]
     public class Configuration : IPluginConfiguration {
         public int Version { get; set; } = 0;
@@ -21,7 +20,7 @@ namespace SkillSwap
             this.pluginInterface = pluginInterface;
         }
 
-        public void Save()  {
+        public void Save() {
             pluginInterface.SavePluginConfig(this);
         }
     }

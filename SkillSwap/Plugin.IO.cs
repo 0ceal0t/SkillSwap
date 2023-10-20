@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public partial class Plugin {
@@ -91,17 +88,15 @@ namespace SkillSwap {
         }
 
         public static byte[] Compressor(byte[] uncompressedBytes) {
-            using (var uMemoryStream = new MemoryStream(uncompressedBytes)) {
-                byte[] compbytes = null;
-                using (var cMemoryStream = new MemoryStream()) {
-                    using (var deflateStream = new DeflateStream(cMemoryStream, CompressionMode.Compress)) {
-                        uMemoryStream.CopyTo(deflateStream);
-                        deflateStream.Close();
-                        compbytes = cMemoryStream.ToArray();
-                    }
-                }
-                return compbytes;
+            using var uMemoryStream = new MemoryStream(uncompressedBytes);
+            byte[] compbytes = null;
+            using (var cMemoryStream = new MemoryStream()) {
+                using var deflateStream = new DeflateStream(cMemoryStream, CompressionMode.Compress);
+                uMemoryStream.CopyTo(deflateStream);
+                deflateStream.Close();
+                compbytes = cMemoryStream.ToArray();
             }
+            return compbytes;
         }
     }
 }

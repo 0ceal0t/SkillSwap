@@ -1,11 +1,8 @@
-﻿using Dalamud.Interface;
-using ImGuiNET;
+﻿using ImGuiNET;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SkillSwap.UI {
     public class ConfirmDialog {
@@ -33,7 +30,7 @@ namespace SkillSwap.UI {
             OnConfirm = onConfirm;
 
             Selected = new();
-            foreach(var item in Mapping) {
+            foreach (var item in Mapping) {
                 Selected.Add(item.Key);
             }
         }
@@ -52,10 +49,10 @@ namespace SkillSwap.UI {
                 ImGui.PushTextWrapPos(size.X);
                 ImGui.BeginChild(_ID + "-Child", size, true);
 
-                foreach(var item in Mapping) {
+                foreach (var item in Mapping) {
                     var selected = Selected.Contains(item.Key);
-                    if(ImGui.Checkbox($"{item.Key}{_ID}", ref selected)) {
-                        if(selected) {
+                    if (ImGui.Checkbox($"{item.Key}{_ID}", ref selected)) {
+                        if (selected) {
                             Selected.Add(item.Key);
                         }
                         else {
@@ -64,10 +61,10 @@ namespace SkillSwap.UI {
                     }
 
                     PrintLine(item.Value.OldTmb, item.Value.NewTmb);
-                    if(item.Value.SwapPap) {
+                    if (item.Value.SwapPap) {
                         PrintLine(item.Value.OldPap, item.Value.NewPap);
                     }
-                    else if(!item.Value.NoPap) {
+                    else if (!item.Value.NoPap) {
                         ImGui.TextWrapped("This .tmb will have its animations stripped (if it has any) because .pap files to swap could not be found. VFXs and sounds will be left intact.");
                     }
                     ImGui.SetCursorPosY(ImGui.GetCursorPosY() + 5);
@@ -76,7 +73,7 @@ namespace SkillSwap.UI {
                 ImGui.EndChild();
                 ImGui.PopTextWrapPos();
 
-                if(ImGui.Button("Export" + _ID)) {
+                if (ImGui.Button("Export" + _ID)) {
                     Visible = false;
                     OnConfirm(Name, Author, Version, SaveLocation, Mapping.Where(item => Selected.Contains(item.Key)).ToDictionary(item => item.Key, item => item.Value));
                 }

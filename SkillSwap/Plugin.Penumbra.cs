@@ -1,12 +1,7 @@
-﻿using Dalamud.Logging;
-using Dalamud.Plugin;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SkillSwap {
     public partial class Plugin {
@@ -36,23 +31,23 @@ namespace SkillSwap {
                 mod.Website = null;
                 mod.FileSwaps = new Dictionary<string, string>();
 
-                string modFolder = Path.Combine(saveLocation, name);
+                var modFolder = Path.Combine(saveLocation, name);
                 Directory.CreateDirectory(modFolder);
-                string modConfig = Path.Combine(modFolder, "meta.json");
-                string configString = JsonConvert.SerializeObject(mod);
+                var modConfig = Path.Combine(modFolder, "meta.json");
+                var configString = JsonConvert.SerializeObject(mod);
                 File.WriteAllText(modConfig, configString);
 
                 foreach (var entry in RemoveConflicts(mapping)) {
-                    string modFile = Path.Combine(modFolder, entry.Key);
-                    string modFileFolder = Path.GetDirectoryName(modFile);
+                    var modFile = Path.Combine(modFolder, entry.Key);
+                    var modFileFolder = Path.GetDirectoryName(modFile);
                     Directory.CreateDirectory(modFileFolder);
                     File.WriteAllBytes(modFile, entry.Value);
                 }
 
-                PluginLog.Log("Exported To: " + saveLocation);
+                Services.Log("Exported To: " + saveLocation);
             }
-            catch(Exception e ) {
-                PluginLog.LogError(e, "Could not export to Penumbra" );
+            catch (Exception e) {
+                Services.Error(e, "Could not export to Penumbra");
             }
         }
     }
